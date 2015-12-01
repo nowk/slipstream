@@ -98,6 +98,11 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 	return writ, nil
 }
 
+// SlipFunc is the func signature for inserting a bytes to a bytes. It takes the
+// insert value and the source, respectively, as arguments.
+//
+// This func returns the bytes to write out to the Writer and bytes to be saved
+// to buffer to be used in the next Read cycle.
 type SlipFunc func([]byte, []byte) (out []byte, buf []byte)
 
 func Before(key []byte) SlipFunc {
@@ -110,7 +115,7 @@ func Before(key []byte) SlipFunc {
 		if m.Exact() {
 			src = append(src, ins...) // grow the slice by ins length
 
-			// insert ins
+			// insert value, via copy to shift, and replace
 			n := 0
 			m := len(ins)
 			for ; n < m; n++ {
@@ -120,6 +125,7 @@ func Before(key []byte) SlipFunc {
 				src[o] = ins[n]
 			}
 
+			// offset
 			n = i + m + 1
 
 			return src[:n], src[n:]
