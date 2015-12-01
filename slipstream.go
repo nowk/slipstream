@@ -8,6 +8,7 @@ import (
 )
 
 type Slipstream struct {
+	// Source is the reader to slip values into
 	Source io.Reader
 
 	slipFunc SlipFunc
@@ -26,16 +27,6 @@ type Slipstream struct {
 }
 
 var _ io.Reader = &Slipstream{}
-
-type matchType int
-
-const (
-	_ matchType = iota
-
-	paMatch
-	exMatch
-	noMatch
-)
 
 func Slip(ins []byte, fn SlipFunc, n int) func(io.Reader) io.Reader {
 	return func(r io.Reader) io.Reader {
