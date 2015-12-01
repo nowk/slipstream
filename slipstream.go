@@ -2,7 +2,6 @@ package slipstream
 
 import (
 	"io"
-	"log"
 
 	"github.com/nowk/bytematch"
 )
@@ -44,22 +43,16 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 	lenp := len(p)
 	writ := 0
 
-	// log.Printf("buf %s, %d", s.buf, lenp)
-
-	log.Printf("trunc %s, %d", s.trunc, len(s.trunc))
+	// flush truncated
 	if lent := len(s.trunc); lent > 0 {
 		n := lenp
 		if lent < n {
 			n = lent
 		}
-
 		for ; writ < n; writ++ {
 			p[writ] = s.trunc[writ]
 		}
-
-		s.trunc = s.trunc[writ:]
-
-		if len(s.trunc) > 0 {
+		if s.trunc = s.trunc[writ:]; len(s.trunc) > 0 {
 			return writ, nil
 		}
 	}
@@ -81,34 +74,23 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 	}
 
 	// slip the insert into the buf if applicable
-	out, buf := s.slipFunc(s.ins, s.buf)
+	var out []byte
+	out, s.buf = s.slipFunc(s.ins, s.buf)
+	if n := lenp - writ; len(out) > n {
+		s.trunc = out[n:] // set truncated
 
-	// save remaining buffer
-	s.buf = buf
-
-	log.Printf("append %s %d", s.buf, writ)
-
-	var b []byte
-
-	// calculate how much we can write to p
-	rem := lenp - writ
-
-	if len(out) > rem {
-		b = out[:rem]
-
-		// set truncated
-		s.trunc = out[rem:]
-	} else {
-		b = out
+		out = out[:n]
 	}
 
 	// write out to p
 	i := 0
-	n = len(b) + writ
+	n = len(out) + writ
 	for ; writ < n; writ++ {
-		p[writ] = b[i]
+		p[writ] = out[i]
+
 		i++
 	}
+
 	if len(s.buf) == 0 && s.eof {
 		return writ, io.EOF
 	}
