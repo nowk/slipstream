@@ -57,12 +57,25 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 		}
 	}
 
+	if len(s.buf) == 0 && len(s.trunc) == 0 && s.eof {
+		return writ, io.EOF
+	}
+
 	n, err := s.Source.Read(p[writ:])
 	if err != nil && err != io.EOF {
 		return n, err
 	}
 	if err == io.EOF {
 		s.eof = true
+	}
+
+	// check occurrence count
+	if s.max > 0 && s.count >= s.max {
+		// move the buf to trunc and keep reading
+		s.trunc = s.buf
+		s.buf = s.buf[:0]
+
+		return n, nil
 	}
 
 	// alloc a buffer based on our initial read size
@@ -75,11 +88,15 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 
 	// slip the insert into the buf if applicable
 	var out []byte
-	out, s.buf = s.slipFunc(s.ins, s.buf)
+	var ok bool
+	out, s.buf, ok = s.slipFunc(s.ins, s.buf)
 	if n := lenp - writ; len(out) > n {
 		s.trunc = out[n:] // set truncated
 
 		out = out[:n]
+	}
+	if ok {
+		s.count++
 	}
 
 	// write out to p
@@ -91,25 +108,22 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 		i++
 	}
 
-	if len(s.buf) == 0 && s.eof {
-		return writ, io.EOF
-	}
-
 	return writ, nil
 }
 
 // SlipFunc is the func signature for inserting a bytes to a bytes. It takes the
 // insert value and the source, respectively, as arguments.
 //
-// This func returns the bytes to write out to the Writer and bytes to be saved
-// to buffer to be used in the next Read cycle.
-type SlipFunc func([]byte, []byte) (out []byte, buf []byte)
+// This func returns the bytes to write out to the Writer, bytes to be saved
+// to buffer to be used in the next Read cycle and whether an insert occured or
+// not.
+type SlipFunc func([]byte, []byte) ([]byte, []byte, bool)
 
 func Before(key []byte) SlipFunc {
-	return func(ins, src []byte) ([]byte, []byte) {
+	return func(ins, src []byte) ([]byte, []byte, bool) {
 		i, m := bytematch.Compare(src, key)
 		if m.Partial() {
-			return src[:i], src[i:]
+			return src[:i], src[i:], false
 		}
 
 		if m.Exact() {
@@ -128,9 +142,9 @@ func Before(key []byte) SlipFunc {
 			// offset
 			n = i + m + 1
 
-			return src[:n], src[n:]
+			return src[:n], src[n:], true
 		}
 
-		return src, src[:0]
+		return src, src[:0], false
 	}
 }

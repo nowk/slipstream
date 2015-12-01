@@ -70,7 +70,40 @@ func TestBefore(t *testing.T) {
 			key = []byte(v.key)
 		)
 
-		slip := Slip(ins, Before(key), 1)
+		slip := Slip(ins, Before(key), 0)
+
+		buf := bytes.NewBuffer(nil)
+
+		_, err := io.Copy(buf, slip(r))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := buf.String(); exp != got {
+			t.Errorf("expected %s, got %s", exp, got)
+		}
+	}
+}
+
+func TestOccurrence(t *testing.T) {
+	var cases = []struct {
+		source   string
+		ins, key string
+		n        int
+		exp      string
+	}{
+		{"accdefgc", "b", "c", 0, "abcbcdefgbc"},
+		{"accdefgc", "b", "c", 2, "abcbcdefgc"},
+		{"accdefgc", "b", "c", 1, "abccdefgc"},
+	}
+
+	for _, v := range cases {
+		r := strings.NewReader(v.source)
+
+		var exp = v.exp
+		var ins = []byte(v.ins)
+		var key = []byte(v.key)
+
+		slip := Slip(ins, Before(key), v.n)
 
 		buf := bytes.NewBuffer(nil)
 
