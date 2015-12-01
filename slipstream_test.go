@@ -64,11 +64,8 @@ func TestBefore(t *testing.T) {
 		r := strings.NewReader(v.source)
 
 		var exp = v.exp
-
-		var (
-			ins = []byte(v.ins)
-			key = []byte(v.key)
-		)
+		var ins = []byte(v.ins)
+		var key = []byte(v.key)
 
 		slip := Slip(ins, Before(key), 0)
 
