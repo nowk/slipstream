@@ -113,3 +113,24 @@ func TestOccurrence(t *testing.T) {
 		}
 	}
 }
+
+func TestPartialMatchAtEnd(t *testing.T) {
+	t.Skip()
+	r := strings.NewReader("Hello ld")
+
+	var exp = "Hello ld"
+	var ins = []byte("Wor")
+	var key = []byte("ld!")
+
+	slip := Slip(ins, Before(key), 1)
+
+	buf := bytes.NewBuffer(nil)
+
+	_, err := io.Copy(buf, slip(r))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := buf.String(); exp != got {
+		t.Errorf("expected %s, got %s", exp, got)
+	}
+}

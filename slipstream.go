@@ -90,13 +90,21 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 	var out []byte
 	var ok bool
 	out, s.buf, ok = s.slipFunc(s.ins, s.buf)
+	if ok {
+		s.count++
+	} else {
+		// if no match, nothing read and we are EOF, we are done, lets write
+		// everything to out
+		if n == 0 && s.eof {
+			out = append(out, s.buf...)
+
+			s.buf = s.buf[:0]
+		}
+	}
 	if n := lenp - writ; len(out) > n {
 		s.trunc = out[n:] // set truncated
 
 		out = out[:n]
-	}
-	if ok {
-		s.count++
 	}
 
 	// write out to p
