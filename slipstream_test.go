@@ -7,8 +7,7 @@ import (
 	"testing"
 )
 
-func TestRead(t *testing.T) {
-	t.Skip()
+func TestBeforeRead(t *testing.T) {
 	html := strings.NewReader("<html><body></body></html>")
 
 	var ins = []byte("<script></script>")
@@ -45,25 +44,30 @@ func TestRead(t *testing.T) {
 	}
 }
 
-func TestSlipBeforeMatch(t *testing.T) {
+func TestBefore(t *testing.T) {
 	var cases = []struct {
-		giv string
-		exp string
+		source   string
+		ins, key string
+		exp      string
 	}{
-		{"123", "123"},
-		{"ac", "abc"},
-		{"acc", "abcbc"},
-		{"accdefgc", "abcbcdefgbc"},
+		{"123", "b", "c", "123"},
+
+		{"ac", "b", "c", "abc"},
+		{"acc", "b", "c", "abcbc"},
+		{"accdefgc", "b", "c", "abcbcdefgbc"},
+
+		{"Hello !", "World", "!", "Hello World!"},
+		{"World!", "Hello ", "World", "Hello World!"},
 	}
 
 	for _, v := range cases {
-		r := strings.NewReader(v.giv)
+		r := strings.NewReader(v.source)
 
 		var exp = v.exp
 
 		var (
-			ins = []byte("b")
-			key = []byte("c")
+			ins = []byte(v.ins)
+			key = []byte(v.key)
 		)
 
 		slip := Slip(ins, Before(key), 1)

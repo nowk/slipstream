@@ -103,10 +103,10 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 	rem := lenp - writ
 
 	if len(out) > rem {
-		b = out[:lenp-writ]
+		b = out[:rem]
 
 		// set truncated
-		s.trunc = out[lenp-writ:]
+		s.trunc = out[rem:]
 	} else {
 		b = out
 	}
@@ -147,7 +147,9 @@ func Before(key []byte) SlipFunc {
 				src[o] = ins[n]
 			}
 
-			log.Printf("exact - %s", src)
+			n = i + m + 1
+
+			return src[:n], src[n:]
 		}
 
 		return src, src[:0]
