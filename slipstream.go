@@ -3,7 +3,7 @@ package slipstream
 import (
 	"io"
 
-	"github.com/nowk/bytematch"
+	"github.com/nowk/slipstream/Godeps/_workspace/src/github.com/nowk/bytematch"
 )
 
 type Slipstream struct {

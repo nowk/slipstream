@@ -1,0 +1,13 @@
+{
+	"ImportPath": "github.com/nowk/slipstream",
+	"GoVersion": "go1.5.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/nowk/bytematch",
+			"Rev": "664484316b05101d39e2d952fc57472d416eebee"
+		}
+	]
+}
