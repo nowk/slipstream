@@ -69,21 +69,21 @@ func (s *Slipstream) Read(p []byte) (int, error) {
 		s.eof = true
 	}
 
-	// check occurrence count
-	if s.max > 0 && s.count >= s.max {
-		// move the buf to trunc and keep reading
-		s.trunc = s.buf
-		s.buf = s.buf[:0]
-
-		return n, nil
-	}
-
 	// alloc a buffer based on our initial read size
 	if s.buf == nil {
 		s.buf = make([]byte, 0, n)
 	}
 	if n > 0 {
 		s.buf = append(s.buf, p[writ:writ+n]...)
+	}
+
+	// check occurrence count
+	if s.max > 0 && s.count >= s.max {
+		// move the buf to trunc and keep reading
+		s.trunc = s.buf
+		s.buf = s.buf[:0]
+
+		return writ, nil
 	}
 
 	// slip the insert into the buf if applicable
