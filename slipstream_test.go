@@ -115,7 +115,6 @@ func TestOccurrence(t *testing.T) {
 }
 
 func TestPartialMatchAtEnd(t *testing.T) {
-	t.Skip()
 	r := strings.NewReader("Hello ld")
 
 	var exp = "Hello ld"
