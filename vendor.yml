@@ -1,0 +1,3 @@
+vendors:
+- path: github.com/nowk/bytematch
+  rev: 664484316b05101d39e2d952fc57472d416eebee
